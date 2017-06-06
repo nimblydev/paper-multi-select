@@ -144,9 +144,10 @@ the form. Populates the `paper-input` based on searchable selection of options u
           <paper-checkbox
             class="chip"
             on-change="_toggleItemState"
-            value="{{item}}"
+            value="{{item.value}}"
+            name="{{item.name}}"
             checked="{{_fetchState(item)}}">
-            {{item}}
+            {{item.name}}
           </paper-checkbox>
         </template>
       </paper-dialog-scrollable>
@@ -226,7 +227,7 @@ the form. Populates the `paper-input` based on searchable selection of options u
         if (selectedItems && selectedItems.length > 0) {
           const chips = this.querySelectorAll('.chip');
           for (const chip of chips) {
-            chip.checked = this.selectedItems.includes(chip.value);
+            chip.checked = this.selectedItems.map(item=>{return item.value;}).includes(chip.value);
           }
         }
         this.$.dialog.open();
@@ -243,7 +244,7 @@ the form. Populates the `paper-input` based on searchable selection of options u
        * @private
        */
       _setItemLabel(selected) {
-        this.selectedItemLabel = selected.join(', ');
+        this.selectedItemLabel = selected.map(item => {return item.name;}).join(', ');
       },
 
       /**
@@ -254,7 +255,7 @@ the form. Populates the `paper-input` based on searchable selection of options u
       _setSelectedItems(selected) {
         const chips = [];
         for (const item of selected) {
-          chips.push({value: item});
+          chips.push({value: item.value, name: item.name});
         }
         this._renderChips(chips);
       },
@@ -275,15 +276,15 @@ the form. Populates the `paper-input` based on searchable selection of options u
             return false;
           }
 
-          const arr = Object.keys(this.state).filter(x => x === item);
+          const arr = Object.keys(this.state).filter(x => x === item.value);
 
           if (arr.length > 0) {
             return true;
           }
 
           val = val.toLowerCase();
-          item = item.toLowerCase();
-          return (item && item.indexOf(val) !== -1);
+          itemName = item.name.toLowerCase();
+          return (itemName && itemName.indexOf(val) !== -1);
         }.bind(this);
       },
 
@@ -306,7 +307,7 @@ the form. Populates the `paper-input` based on searchable selection of options u
        * @private
        */
       _fetchState(item) {
-        return (item in this.state);
+        return (item.value in this.state);
       },
 
       /**
@@ -323,12 +324,13 @@ the form. Populates the `paper-input` based on searchable selection of options u
         this._renderChips(selectedChips);
         this.selectedItems = [];
         for (const chip of selectedChips) {
-          this.push('selectedItems', chip.value);
+          this.push('selectedItems', {name: chip.name, value:chip.value});
         }
       },
 
       _isItemChecked(item) {
-        return this.selectedItems.includes(item);
+        // todo
+        return this.selectedItems.map(item=>{return item.value}).includes(item.value);
       },
 
       /**
@@ -341,7 +343,7 @@ the form. Populates the `paper-input` based on searchable selection of options u
         if (totalItems === 0) return;
         const leadClues = [];
         for (const [index, item] of items.entries()) {
-          leadClues.push(item.value);
+          leadClues.push(item.name);
           if (index === 1) {
             break;
           }
